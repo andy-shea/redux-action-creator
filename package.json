@@ -1,0 +1,36 @@
+{
+  "name": "redux-action-creator",
+  "description": "Reduce boilerplate code in your action creators and types",
+  "author": "Andy Shea <aa.shea@gmail.com>",
+  "version": "0.0.0",
+  "license": "MIT",
+  "main": "lib/index.js",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/andy-shea/redux-action-creator"
+  },
+  "homepage": "https://github.com/andy-shea/redux-action-creator",
+  "keywords": [
+    "react",
+    "redux",
+    "action",
+    "action-creator",
+    "universal",
+    "boilerplate",
+    "type",
+    "normalizr"
+  ],
+  "scripts": {
+    "build": "babel src -d lib",
+    "prepublish": "npm run build"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.14.0",
+    "babel-preset-es2015": "^6.14.0",
+    "babel-register": "^6.14.0"
+  },
+  "dependencies": {
+    "argsmap": "^0.1.0",
+    "normalizr": "^2.2.1"
+  }
+}
