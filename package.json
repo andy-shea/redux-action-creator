@@ -2,7 +2,7 @@
   "name": "redux-action-creator",
   "description": "Reduce boilerplate code in your action creators and types",
   "author": "Andy Shea <aa.shea@gmail.com>",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "license": "MIT",
   "main": "lib/index.js",
   "repository": {
