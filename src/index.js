@@ -1,5 +1,6 @@
 import {normalize} from 'normalizr';
 import argsMap from 'argsmap';
+import isNode from 'detect-node';
 
 const SUCCESS = 'SUCCESS';
 const FAIL = 'FAIL';
@@ -18,7 +19,7 @@ export function asyncActionCreator(type, config) {
   const {client, server, schema} = config;
 
   return (...args) => dispatch => {
-    const action = config.action || (__IS_NODE__ ? server : client);
+    const action = config.action || (isNode ? server : client);
     const payload = argsMap(action, args);
     dispatch({type, payload});
     return action(...args).then(
