@@ -1,5 +1,8 @@
 # Redux Action Creator
 
+[![Build Status](https://travis-ci.org/andy-shea/redux-action-creator.svg?branch=master)](https://travis-ci.org/andy-shea/redux-action-creator)
+[![Code Coverage](http://codecov.io/github/andy-shea/redux-action-creator/coverage.svg?branch=master)](http://codecov.io/github/andy-shea/redux-action-creator?branch=master)
+
 Reduce boilerplate code in your Redux action creators and types with support for normalizr and universal JavaScript.
 
 ## Install
