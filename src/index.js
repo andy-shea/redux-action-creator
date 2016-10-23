@@ -28,10 +28,7 @@ export function asyncActionCreator(type, config) {
           payload,
           response: schema ? normalize(response, schema) : response
         }),
-        ({message, code}) => {
-          if (process.env.NODE_ENV === 'development') console.error(`ERROR: ${message}`);  // eslint-disable-line no-console
-          dispatch({type: `${type}_${FAIL}`, payload, error: {message, code}});
-        });
+        ({message, code}) => dispatch({type: `${type}_${FAIL}`, payload, error: {message, code}}));
   };
 }
 

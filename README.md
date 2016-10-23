@@ -4,17 +4,19 @@ Reduce boilerplate code in your Redux action creators and types with support for
 
 ## Install
 
-```npm install redux-action-creator --save```
+```
+yarn add redux-action-creator
+```
 
 ## Usage
 
-### Types
+### Action Types
 
 Use `createTypes(types, [namespace])` to create action types with far less boilerplate.
 `types` is an array of strings designating the name of the action types and `namespace` is an optional prefix to prevent name collisions.
 
-Before:
-```
+**Before:**
+```javascript
 const types = {
   CREATE_CAR: 'CAR_CREATE_CAR',
   EDIT_CAR: 'CAR_EDIT_CAR',
@@ -22,8 +24,8 @@ const types = {
 };
 ```
 
-After:
-```
+**After:**
+```javascript
 import {createTypes} from 'redux-action-creator';
 
 const types = createTypes(['CREATE_CAR', 'EDIT_CAR', 'EDIT_WHEELS'], 'CAR');
@@ -32,8 +34,8 @@ const types = createTypes(['CREATE_CAR', 'EDIT_CAR', 'EDIT_WHEELS'], 'CAR');
 Asynchronous actions typically come in sets of three with the main action type along with a success and fail type.
 Use the `async(type)` helper to generate this set.
 
-Before:
-```
+**Before:**
+```javascript
 const types = {
   LOAD_CARS: 'CAR_LOAD_CARS',
   LOAD_CARS_SUCCESS: 'CAR_LOAD_CARS_SUCCESS',
@@ -44,8 +46,8 @@ const types = {
 };
 ```
 
-After:
-```
+**After:**
+```javascript
 import {createTypes, async} from 'redux-action-creator';
 
 // use ES6 spread syntax to succinctly merge the returned asynchronous types
@@ -55,13 +57,13 @@ const types = createTypes([
 ], 'CAR');
 ```
 
-### Actions
+### Synchronous Action Creators
 
-Synchronous action creators can be defined using the `actionCreator(type, ...params)` helper.
+Synchronous action creators can be defined using the `actionCreator(type [, paramName1, paramName2, ..., paramNameX])` helper.
 This will return a function that accepts the list of params as arguments and returns an action with the given type and arguments payload.
 
-Before:
-```
+**Before:**
+```javascript
 var actions = {
   createCar: function() {
     return {type: 'CAR_CREATE_CAR'};
@@ -74,8 +76,8 @@ var actions = {
 };
 ```
 
-After:
-```
+**After:**
+```javascript
 import {actionCreator} from 'redux-action-creator';
 
 const actions = {
@@ -84,17 +86,18 @@ const actions = {
 };
 ```
 
+### Asynchronous Action Creators
+
 Asynchronous action creators can be defined using the `asyncActionCreator(type, action|config)` helper.
 If a function is passed as the second parameter, it will be treated as the asynchronous action that must return a promise,
 otherwise it can be a configuration object that accepts the following values:
 
 - `action`: an asynchronous, promise-returning action
 - `schema`: a normalizr schema which will parse the response before returning
+- **Note: see [Universal](#universal) usage below for more configuration options**
 
-**(See [Universal](#universal) usage below for more configuration options)**
-
-Before:
-```
+**Before:**
+```javascript
 var actions = {
   loadCars: function() {
     return function(dispatch) {
@@ -126,8 +129,8 @@ var actions = {
 };
 ```
 
-After:
-```
+**After:**
+```javascript
 import {Schema} from 'normalizr';
 import {asyncActionCreator} from 'redux-action-creator';
 
@@ -145,7 +148,7 @@ const actions = {
 Instead of passing a single action to the `asyncActionCreator`, you can instead pass a `client` action and a
 `server` action and the appropriate function will be executed depending on the context in which it is run.
 
-```
+```javascript
 const actions = {
   loadCars: asyncActionCreator(types.LOAD_CARS, {
     client: () => get('/cars'),

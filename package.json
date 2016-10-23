@@ -21,13 +21,22 @@
     "normalizr"
   ],
   "scripts": {
+    "test": "cross-env NODE_ENV=test nyc tape ./test/**/*.js",
+    "coverage": "nyc report --reporter=text-lcov > coverage.lcov && codecov",
+    "prebuild": "npm test",
     "build": "babel src -d lib",
     "prepublish": "npm run build"
   },
   "devDependencies": {
     "babel-cli": "^6.14.0",
+    "babel-plugin-istanbul": "^2.0.3",
     "babel-preset-es2015": "^6.14.0",
-    "babel-register": "^6.14.0"
+    "babel-register": "^6.14.0",
+    "codecov": "^1.0.1",
+    "cross-env": "^3.1.3",
+    "nyc": "^8.3.2",
+    "proxyquire": "^1.7.10",
+    "tape": "^4.6.2"
   },
   "dependencies": {
     "argsmap": "^0.1.0",
