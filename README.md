@@ -140,7 +140,7 @@ import {asyncActionCreator} from 'redux-action-creator';
 const actions = {
   loadCars: asyncActionCreator(types.LOAD_CARS, () => get('/cars')),
   addCar: asyncActionCreator(types.ADD_CAR, {
-    action: (electric, wheels) => post('/cars', {electrics, wheels}),
+    action: ({electric, wheels}) => post('/cars', {electrics, wheels}),
     schema: new Schema('cars')
   })
 };

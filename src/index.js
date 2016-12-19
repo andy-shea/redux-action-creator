@@ -1,5 +1,4 @@
 import {normalize} from 'normalizr';
-import argsMap from 'argsmap';
 import isNode from 'detect-node';
 
 const SUCCESS = 'SUCCESS';
@@ -18,11 +17,10 @@ export function asyncActionCreator(type, config) {
   if (typeof config === 'function') config = {action: config}; // eslint-disable-line no-param-reassign
   const {client, server, schema} = config;
 
-  return (...args) => dispatch => {
+  return payload => dispatch => {
     const action = config.action || (isNode ? server : client);
-    const payload = argsMap(action, args);
     dispatch({type, payload});
-    return action(...args).then(
+    return action(payload).then(
         response => dispatch({
           type: `${type}_${SUCCESS}`,
           payload,

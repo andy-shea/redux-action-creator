@@ -78,12 +78,12 @@ test("asyncActionCreator() dispatches an action type followed by it's fail varia
 
 test("asyncActionCreator() success actions include payload", t => {
   t.plan(4);
-  const createActionDispatcher = asyncActionCreator('FOOBAR', (foo, bar) => {
+  const createActionDispatcher = asyncActionCreator('FOOBAR', ({foo, bar}) => {
     t.equal(foo, 'baz', 'foo payload exists');
     t.equal(bar, 'qux', 'bar payload exists');
     return Promise.resolve();
   });
-  const dispatchAction = createActionDispatcher('baz', 'qux');
+  const dispatchAction = createActionDispatcher({foo: 'baz', bar: 'qux'});
   const actions = ['FOOBAR', 'FOOBAR_SUCCESS'];
   let index = 0;
   dispatchAction(action => {
@@ -96,8 +96,8 @@ test("asyncActionCreator() success actions include payload", t => {
 
 test("asyncActionCreator() error actions include payload", t => {
   t.plan(2);
-  const createActionDispatcher = asyncActionCreator('FOOBAR', (foo, bar) => Promise.reject({message: 'error'}));
-  const dispatchAction = createActionDispatcher('baz', 'qux');
+  const createActionDispatcher = asyncActionCreator('FOOBAR', ({foo, bar}) => Promise.reject({message: 'error'}));
+  const dispatchAction = createActionDispatcher({foo: 'baz', bar: 'qux'});
   const actions = ['FOOBAR', 'FOOBAR_FAIL'];
   let index = 0;
   dispatchAction(action => {
@@ -111,16 +111,16 @@ test("asyncActionCreator() error actions include payload", t => {
 test("asyncActionCreator() runs server action when node detected", t => {
   t.plan(1);
   const createActionDispatcher = asyncActionCreator('FOOBAR', {
-    server(foo, bar) {
+    server({foo, bar}) {
       t.pass('server action is run');
       return Promise.resolve();
     },
-    client(foo, bar) {
+    client({foo, bar}) {
       t.fail('client action is run');
       return Promise.resolve();
     }
   });
-  const dispatchAction = createActionDispatcher('baz', 'qux');
+  const dispatchAction = createActionDispatcher({foo: 'baz', bar: 'qux'});
   dispatchAction(() => ({}));
 });
 
@@ -128,16 +128,16 @@ test("asyncActionCreator() runs client action when browser detected", t => {
   const {asyncActionCreator: browserAsyncActionCreator} = proxyquire('../src', {'detect-node': false});
   t.plan(1);
   const createActionDispatcher = browserAsyncActionCreator('FOOBAR', {
-    server(foo, bar) {
+    server({foo, bar}) {
       t.fail('server action is run');
       return Promise.resolve();
     },
-    client(foo, bar) {
+    client({foo, bar}) {
       t.pass('client action is run');
       return Promise.resolve();
     }
   });
-  const dispatchAction = createActionDispatcher('baz', 'qux');
+  const dispatchAction = createActionDispatcher({foo: 'baz', bar: 'qux'});
   dispatchAction(() => ({}));
 });
 
