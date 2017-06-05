@@ -17,12 +17,11 @@ export function asyncActionCreator(type, config) {
   if (typeof config === 'function') config = {action: config}; // eslint-disable-line no-param-reassign
   const {client, server, schema} = config;
 
-  return payload => (...args) => {
-    const dispatch = args[0];
+  return payload => (dispatch, ...args) => {
     const action = config.action || (isNode ? server : client);
     args.unshift(payload);
     dispatch({type, payload});
-    return action(...args).then(
+    return action(payload, dispatch, ...args).then(
         response => dispatch({
           type: `${type}_${SUCCESS}`,
           payload,
