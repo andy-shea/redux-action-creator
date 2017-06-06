@@ -19,7 +19,6 @@ export function asyncActionCreator(type, config) {
 
   return payload => (dispatch, ...args) => {
     const action = config.action || (isNode ? server : client);
-    args.unshift(payload);
     dispatch({type, payload});
     return action(payload, dispatch, ...args).then(
         response => dispatch({
