@@ -162,3 +162,18 @@ test("asyncActionCreator() calls normalizr when schema is provided", t => {
   const dispatchAction = createActionDispatcher();
   dispatchAction(() => ({}));
 });
+
+test("action passed to asyncActionCreator() is given all available parameters along with payload", t => {
+  t.plan(3);
+  const payload = {foo: 'bar'};
+  const dispatch = () => {};
+  const thirdParam = 'foobar';
+  const createActionDispatcher = asyncActionCreator('FOOBAR', (param1, param2, param3) => {
+    t.equal(param1, payload, 'first param is the payload');
+    t.equal(param2, dispatch, 'second param is dispatch function');
+    t.equal(param3, thirdParam, 'third param is passed');
+    return Promise.resolve();
+  });
+  const dispatchAction = createActionDispatcher(payload);
+  dispatchAction(dispatch, thirdParam);
+});

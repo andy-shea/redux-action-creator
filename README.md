@@ -99,6 +99,11 @@ otherwise it can be a configuration object that accepts the following values:
 - `schema`: a normalizr schema which will parse the response before returning
 - **Note: see [Universal](#universal) usage below for more configuration options**
 
+The action given to `asyncActionCreator` will eventually be called with the payload, the `dispatch` function, and whatever
+extra arguments as determined by the async middleware and the configuration of it. For example, if used with
+[redux-thunk](https://github.com/gaearon/redux-thunk), the action will be called with the payload, the `dispatch` function,
+the `getState` function, and the `extraArgument` if the middleware was created via the `withExtraArgument` function.
+
 **Before:**
 ```javascript
 var actions = {
