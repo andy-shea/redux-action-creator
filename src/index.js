@@ -26,7 +26,7 @@ export function asyncActionCreator(type, config) {
           payload,
           response: schema ? normalize(response, schema) : response
         }),
-        ({message, code}) => dispatch({type: `${type}_${FAIL}`, payload, error: {message, code}}));
+        error => dispatch({type: `${type}_${FAIL}`, payload, error}));
   };
 }
 
