@@ -3,7 +3,7 @@
 [![Build Status](https://travis-ci.org/andy-shea/redux-action-creator.svg?branch=master)](https://travis-ci.org/andy-shea/redux-action-creator)
 [![Code Coverage](http://codecov.io/github/andy-shea/redux-action-creator/coverage.svg?branch=master)](http://codecov.io/github/andy-shea/redux-action-creator?branch=master)
 
-Reduce boilerplate code in your Redux action creators and types with support for normalizr and universal JavaScript.
+Reduce boilerplate code in your Redux action creators and types with support for [normalizr](https://github.com/paularmstrong/normalizr), [universal JavaScript](https://medium.com/@mjackson/universal-javascript-4761051b7ae9), and [Redux-first Router](https://github.com/faceyspacey/redux-first-router).
 
 ## Install
 
@@ -171,6 +171,37 @@ the server when using a library such as [redux-connect](https://github.com/makeo
 **Note: if you have server-side only dependencies in your `server` action that will create a troublesome client webpack build,
 use the custom webpack [universal-action-creator-loader](https://github.com/andy-shea/universal-action-creator-loader) to strip
 the `server` action from the action creator.  All server-side dependencies must be `require`d from within the `server` function.**
+
+### Redux-first Router
+
+Asynchronous routes for Redux-first Router can be defined using the `asyncRoute(type, path, action|config, [helpers])` helper.
+It works similar to the `asyncActionCreator` described above with the addition of the route `path` and the `helpers` object
+containing any helper utilities the action may need to route correctly.  The action given to `asyncRoute` will eventually be
+called with the payload, the `dispatch` function, the `getState` function, and finally the `helpers` object if given.
+
+`asyncRoute` will return a route object of the form
+```
+{
+  [type]: {
+    path,
+    thunk,
+    ...rest
+  }  
+}
+```
+where `rest` is any further properties of `config` apart from `client`, `server`, and `schema` that you need to define the route.
+For example, this can be used to set an `isSecure` property on the route to signify that the route requires authorisation.
+
+The returned route object can then be merged into the final routes map to be passed to Redux-first Router's `connectRoutes` function.
+```
+const routesMap = {
+  ROUTES_HOME: '/home',
+  ...asyncRoute('ROUTES_CARS', '/cars', () => get('/cars')),
+  ...asyncRoute('ROUTES_CAR', '/cars/:id', payload => get(`/cars/${payload.id}`))
+}
+```
+
+Use `createRouteTypes(types)` as a shortcut to creating types with 'ROUTES' as the namespace.
 
 ## Licence
 

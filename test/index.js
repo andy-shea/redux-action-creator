@@ -1,6 +1,6 @@
 import test from 'tape';
 import proxyquire from 'proxyquire';
-import {actionCreator, asyncActionCreator, createTypes, async} from '../src';
+import {actionCreator, asyncActionCreator, asyncRoute, createTypes, createRouteTypes, async} from '../src';
 
 test('createTypes() returns an object with action type keys and values', t => {
   const types = createTypes(['CREATE_CAR', 'EDIT_CAR', 'EDIT_WHEELS']);
@@ -17,6 +17,14 @@ test('createTypes() returns an object with action type keys and namespaced actio
   t.equal(types.CREATE_CAR, 'CAR_CREATE_CAR', 'CREATE_CAR exists and is namespaced correctly');
   t.equal(types.EDIT_CAR, 'CAR_EDIT_CAR', 'EDIT_CAR exists and is namespaced correctly');
   t.equal(types.EDIT_WHEELS, 'CAR_EDIT_WHEELS', 'EDIT_WHEELS exists and is namespaced correctly');
+  t.end();
+});
+
+test('createRouteTypes() returns an object with action type keys and values namespaced with "ROUTES"', t => {
+  const types = createRouteTypes(['CREATE', 'EDIT']);
+  t.equal(Object.keys(types).length, 2, 'contains two types');
+  t.equal(types.CREATE, 'ROUTES_CREATE', 'CREATE exists and is namespaced correctly');
+  t.equal(types.EDIT, 'ROUTES_EDIT', 'EDIT exists and is namespaced correctly');
   t.end();
 });
 
@@ -176,4 +184,57 @@ test("action passed to asyncActionCreator() is given all available parameters al
   });
   const dispatchAction = createActionDispatcher(payload);
   dispatchAction(dispatch, thirdParam);
+});
+
+test('asyncRoute() returns an object containing required route structure for redux-first-router', t => {
+  const route = asyncRoute('FOO', '/foo', () => {});
+  t.equal(Object.keys(route).length, 1, 'the route contains a single key');
+  t.equal(typeof route.FOO, 'object', 'FOO route exists');
+  const config = route.FOO;
+  t.equal(Object.keys(config).length, 2);
+  t.equal(config.path, '/foo', 'path exists');
+  t.equal(typeof config.thunk, 'function', 'thunk exists');
+  t.end();
+});
+
+test('asyncRoute() attaches any extra params provided in config to route', t => {
+  const {FOO: config} = asyncRoute('FOO', '/foo', {foo: 'bar'});
+  t.equal(Object.keys(config).length, 3);
+  t.equal(config.foo, 'bar', 'extra param foo exists');
+  t.end();
+});
+
+test("asyncRoute() thunk dispatches success action with response on completion of action", t => {
+  t.plan(2);
+  const {FOO: {thunk}} = asyncRoute('FOO', '/foo', () => Promise.resolve('Hello World!'));
+  thunk(action => {
+    t.equal(action.type, 'FOO_SUCCESS', `success action is dispatched`);
+    t.equal(action.response, 'Hello World!', `response is present`);
+  }, () => ({location: {}}));
+});
+
+test("asyncRoute() thunk dispatches fail action with error details on action error", t => {
+  t.plan(3);
+  const {FOO: {thunk}} = asyncRoute('FOO', '/foo', () => Promise.reject({message: 'error message', code: 500}));
+  thunk(action => {
+    t.equal(action.type, 'FOO_FAIL', `error action is dispatched`);
+    t.equal(action.error.message, 'error message', `error message is present`);
+    t.equal(action.error.code, 500, `error code is present`);
+  }, () => ({location: {}}));
+});
+
+test("asyncRoute() thunk action is given all available parameters along with payload", t => {
+  t.plan(4);
+  const payload = {foo: 'bar'};
+  const dispatch = () => {};
+  const getState = () => ({location: {payload}});
+  const helpers = {bar: 'baz'};
+  const {FOO: {thunk}} = asyncRoute('FOO', '/foo', (param1, param2, param3, param4) => {
+    t.equal(param1, payload, 'first param is the payload');
+    t.equal(param2, dispatch, 'second param is dispatch function');
+    t.equal(param3, getState, 'third param is getState function');
+    t.equal(param4, helpers, 'fourth param is helpers');
+    return Promise.resolve();
+  }, helpers);
+  thunk(dispatch, getState);
 });
