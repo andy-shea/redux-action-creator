@@ -116,6 +116,18 @@ test("asyncActionCreator() error actions include payload", t => {
   });
 });
 
+test("asyncActionCreator() runs action provided as config property", t => {
+  t.plan(1);
+  const createActionDispatcher = asyncActionCreator('FOOBAR', {
+    action: () => {
+      t.pass('action is run');
+      return Promise.resolve();
+    }
+  });
+  const dispatchAction = createActionDispatcher();
+  dispatchAction(() => ({}));
+});
+
 test("asyncActionCreator() runs server action when node detected", t => {
   t.plan(1);
   const createActionDispatcher = asyncActionCreator('FOOBAR', {
@@ -169,6 +181,29 @@ test("asyncActionCreator() calls normalizr when schema is provided", t => {
   });
   const dispatchAction = createActionDispatcher();
   dispatchAction(() => ({}));
+});
+
+test('asyncRoute() dispatches any extra params provided in config', t => {
+  t.plan(6);
+  const {asyncActionCreator: schemaNoopAsyncActionCreator} = proxyquire('../src', {
+    normalizr: {normalize: () => {}}
+  });
+  const createActionDispatcher = schemaNoopAsyncActionCreator('FOOBAR', {
+    action: () => Promise.resolve(),
+    client: () => Promise.resolve(),
+    server: () => Promise.resolve(),
+    schema: {some: 'schema'},
+    foo: 'baz',
+    bar: 'qux'
+
+  });
+  let index = 0;
+  const dispatchAction = createActionDispatcher();
+  dispatchAction(action => {
+    t.equal(Object.keys(action).length, index++ ? 6 : 5);
+    t.equal(action.foo, 'baz', 'extra param foo exists');
+    t.equal(action.bar, 'qux', 'extra param bar exists');
+  });
 });
 
 test("action passed to asyncActionCreator() is given all available parameters along with payload", t => {

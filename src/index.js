@@ -13,23 +13,26 @@ export function actionCreator(type, ...params) {
   };
 }
 
-function executeAsyncAction(type, config, payload, dispatch, args) {
+function executeAsyncAction(type, payload, config, dispatchExtraConfigProperies, dispatch, args) {
   if (typeof config === 'function') config = {action: config}; // eslint-disable-line no-param-reassign
-  const {client, server, schema} = config;
+  const {client, server, schema, ...rest} = config;
   const action = config.action || (isNode ? server : client);
+  const extra = dispatchExtraConfigProperies ? rest : {};
   return action(payload, dispatch, ...args).then(
       response => dispatch({
         type: `${type}_${SUCCESS}`,
         payload,
-        response: schema ? normalize(response, schema) : response
+        response: schema ? normalize(response, schema) : response,
+        ...extra
       }),
-      error => dispatch({type: `${type}_${FAIL}`, payload, error}));
+      error => dispatch({type: `${type}_${FAIL}`, payload, error, ...extra}));
 }
 
 export function asyncActionCreator(type, config) {
+  const {client, server, schema, ...rest} = config;
   return payload => (dispatch, ...args) => {
-    dispatch({type, payload});
-    return executeAsyncAction(type, config, payload, dispatch, args);
+    dispatch({type, payload, ...rest});
+    return executeAsyncAction(type, payload, config, true, dispatch, args);
   };
 }
 
@@ -41,7 +44,7 @@ export function asyncRoute(type, path, config, helpers) {
       thunk: (dispatch, getState) => {
         const state = getState();
         const {location: {payload}} = state;
-        return executeAsyncAction(type, config, payload, dispatch, [getState, helpers]);
+        return executeAsyncAction(type, payload, config, false, dispatch, [getState, helpers]);
       },
       ...rest
     }

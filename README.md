@@ -104,6 +104,9 @@ extra arguments as determined by the async middleware and the configuration of i
 [redux-thunk](https://github.com/gaearon/redux-thunk), the action will be called with the payload, the `dispatch` function,
 the `getState` function, and the `extraArgument` if the middleware was created via the `withExtraArgument` function.
 
+**Note: All other properties provided in `config` apart from `action`, `client`, `server`, and `schema` will be appended
+to all actions dispatched from the action creator enabling further customisation if needed.**
+
 **Before:**
 ```javascript
 var actions = {
@@ -180,7 +183,7 @@ containing any helper utilities the action may need to route correctly.  The act
 called with the payload, the `dispatch` function, the `getState` function, and finally the `helpers` object if given.
 
 `asyncRoute` will return a route object of the form
-```
+```javascript
 {
   [type]: {
     path,
@@ -189,11 +192,12 @@ called with the payload, the `dispatch` function, the `getState` function, and f
   }  
 }
 ```
-where `rest` is any further properties of `config` apart from `client`, `server`, and `schema` that you need to define the route.
+where `rest` is any further properties of `config` apart from `action`, `client`, `server`, and `schema` that you need to
+define the route.
 For example, this can be used to set an `isSecure` property on the route to signify that the route requires authorisation.
 
 The returned route object can then be merged into the final routes map to be passed to Redux-first Router's `connectRoutes` function.
-```
+```javascript
 const routesMap = {
   ROUTES_HOME: '/home',
   ...asyncRoute('ROUTES_CARS', '/cars', () => get('/cars')),

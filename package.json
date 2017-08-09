@@ -25,7 +25,7 @@
     "coverage": "nyc report --reporter=text-lcov > coverage.lcov && codecov",
     "prebuild": "npm test",
     "build": "babel src -d lib",
-    "prepublish": "npm run build"
+    "prepublishOnly": "npm run build"
   },
   "devDependencies": {
     "babel-cli": "^6.14.0",
@@ -35,7 +35,7 @@
     "babel-register": "^6.14.0",
     "codecov": "^2.2.0",
     "cross-env": "^5.0.0",
-    "nyc": "^10.3.2",
+    "nyc": "^11.1.0",
     "proxyquire": "^1.7.10",
     "tape": "^4.6.2"
   },
