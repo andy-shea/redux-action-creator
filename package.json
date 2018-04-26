@@ -27,6 +27,10 @@
     "build": "babel src -d lib",
     "prepublishOnly": "npm run build"
   },
+  "files": [
+    "lib",
+    "src"
+  ],
   "devDependencies": {
     "babel-cli": "^6.26.0",
     "babel-plugin-istanbul": "^4.1.5",
