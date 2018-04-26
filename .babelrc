@@ -1,5 +1,5 @@
 {
-  "presets": ["es2015"],
+  "presets": ["react-native"],
   "env": {
     "test": {
       "plugins": ["istanbul"]
