@@ -4,35 +4,49 @@ import isNode from 'detect-node';
 const SUCCESS = 'SUCCESS';
 const FAIL = 'FAIL';
 
-export function actionCreator(type, ...params) {
-  return (...args) => {
-    return params.reduce((action, param, index) => {
-      action.payload[param] = args[index];
-      return action;
-    }, {type, payload: {}});
-  };
+function filterPayload(props, payload) {
+  return props.reduce((filteredPayload, prop) => {
+    filteredPayload[prop] = payload[prop];
+    return filteredPayload;
+  }, {});
 }
 
-function executeAsyncAction(type, payload, config, dispatchExtraConfigProperies, dispatch, args) {
+export function actionCreator(type, ...props) {
+  return payload => ({type, payload: filterPayload(props, payload)});
+}
+
+function executeAsyncAction(
+  type,
+  payload,
+  helpers,
+  config,
+  dispatchExtraConfigProperies,
+  dispatch,
+  args
+) {
   if (typeof config === 'function') config = {action: config}; // eslint-disable-line no-param-reassign
   const {client, server, schema, ...rest} = config;
   const action = config.action || (isNode ? server : client);
   const extra = dispatchExtraConfigProperies ? rest : {};
-  return action(payload, dispatch, ...args).then(
-      response => dispatch({
+  return action(payload, {...helpers, dispatch}, ...args).then(
+    response =>
+      dispatch({
         type: `${type}_${SUCCESS}`,
         payload,
         response: schema ? normalize(response, schema) : response,
         ...extra
       }),
-      error => dispatch({type: `${type}_${FAIL}`, payload, error, ...extra}));
+    error => dispatch({type: `${type}_${FAIL}`, payload, error, ...extra})
+  );
 }
 
-export function asyncActionCreator(type, config) {
-  const {client, server, schema, ...rest} = config;
-  return payload => (dispatch, ...args) => {
-    dispatch({type, payload, ...rest});
-    return executeAsyncAction(type, payload, config, true, dispatch, args);
+export function asyncActionCreator(type, ...propsAndConfig) {
+  const config = propsAndConfig.pop();
+  const {client, server, schema, ...rest} = typeof config === 'function' ? {} : config;
+  return (payload, helpers) => (dispatch, ...args) => {
+    const filteredPayload = filterPayload(propsAndConfig, payload);
+    dispatch({type, payload: filteredPayload, ...rest});
+    return executeAsyncAction(type, filteredPayload, helpers, config, true, dispatch, args);
   };
 }
 
@@ -43,8 +57,10 @@ export function asyncRoute(type, path, config, helpers) {
       path,
       thunk: (dispatch, getState) => {
         const state = getState();
-        const {location: {payload}} = state;
-        return executeAsyncAction(type, payload, config, false, dispatch, [getState, helpers]);
+        const {
+          location: {payload}
+        } = state;
+        return executeAsyncAction(type, payload, helpers, config, false, dispatch, [getState]);
       },
       ...rest
     }
