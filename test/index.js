@@ -1,6 +1,13 @@
 import test from 'tape';
 import proxyquire from 'proxyquire';
-import {actionCreator, asyncActionCreator, asyncRoute, createTypes, createRouteTypes, async} from '../src';
+import {
+  actionCreator,
+  asyncActionCreator,
+  asyncRoute,
+  createTypes,
+  createRouteTypes,
+  async
+} from '../src';
 
 test('createTypes() returns an object with action type keys and values', t => {
   const types = createTypes(['CREATE_CAR', 'EDIT_CAR', 'EDIT_WHEELS']);
@@ -45,19 +52,22 @@ test('actionCreator() returns a function that creates an action with the given t
   t.end();
 });
 
-test('actionCreator() returns a function that creates an action with the given type and parameters', t => {
+test('actionCreator() returns a function that creates an action with the given type and only the specified parameters', t => {
   const createAction = actionCreator('FOO', 'bar', 'baz', 'qux');
-  const action = createAction('bar', 'baz', 'qux');
+  const action = createAction({bar: 'bar', baz: 'baz', qux: 'qux', remove: 'gone'});
   t.equal(Object.keys(action.payload).length, 3, 'the payload contains three parameters');
   t.equal(action.payload.bar, 'bar', 'bar payload exists');
   t.equal(action.payload.baz, 'baz', 'baz payload exists');
   t.equal(action.payload.qux, 'qux', 'qux payload exists');
+  t.equal(action.payload.remove, undefined, 'remove parameter is not included in payload');
   t.end();
 });
 
 test("asyncActionCreator() dispatches an action type followed by it's successful variant with response on completion of action", t => {
   t.plan(3);
-  const createActionDispatcher = asyncActionCreator('FOOBAR', () => Promise.resolve('Hello World!'));
+  const createActionDispatcher = asyncActionCreator('FOOBAR', () =>
+    Promise.resolve('Hello World!')
+  );
   const dispatchAction = createActionDispatcher();
   const actions = ['FOOBAR', 'FOOBAR_SUCCESS'];
   let index = 0;
@@ -70,7 +80,9 @@ test("asyncActionCreator() dispatches an action type followed by it's successful
 
 test("asyncActionCreator() dispatches an action type followed by it's fail variant with error details on action error", t => {
   t.plan(4);
-  const createActionDispatcher = asyncActionCreator('FOOBAR', () => Promise.reject({message: 'error message', code: 500}));
+  const createActionDispatcher = asyncActionCreator('FOOBAR', () =>
+    Promise.reject({message: 'error message', code: 500})
+  );
   const dispatchAction = createActionDispatcher();
   const actions = ['FOOBAR', 'FOOBAR_FAIL'];
   let index = 0;
@@ -84,9 +96,9 @@ test("asyncActionCreator() dispatches an action type followed by it's fail varia
   });
 });
 
-test("asyncActionCreator() success actions include payload", t => {
+test('asyncActionCreator() success actions include payload', t => {
   t.plan(4);
-  const createActionDispatcher = asyncActionCreator('FOOBAR', ({foo, bar}) => {
+  const createActionDispatcher = asyncActionCreator('FOOBAR', 'foo', 'bar', ({foo, bar}) => {
     t.equal(foo, 'baz', 'foo payload exists');
     t.equal(bar, 'qux', 'bar payload exists');
     return Promise.resolve();
@@ -102,9 +114,11 @@ test("asyncActionCreator() success actions include payload", t => {
   });
 });
 
-test("asyncActionCreator() error actions include payload", t => {
+test('asyncActionCreator() error actions include payload', t => {
   t.plan(2);
-  const createActionDispatcher = asyncActionCreator('FOOBAR', ({foo, bar}) => Promise.reject({message: 'error'}));
+  const createActionDispatcher = asyncActionCreator('FOOBAR', 'foo', 'bar', ({foo, bar}) =>
+    Promise.reject({message: 'error'})
+  );
   const dispatchAction = createActionDispatcher({foo: 'baz', bar: 'qux'});
   const actions = ['FOOBAR', 'FOOBAR_FAIL'];
   let index = 0;
@@ -116,7 +130,7 @@ test("asyncActionCreator() error actions include payload", t => {
   });
 });
 
-test("asyncActionCreator() runs action provided as config property", t => {
+test('asyncActionCreator() runs action provided as config property', t => {
   t.plan(1);
   const createActionDispatcher = asyncActionCreator('FOOBAR', {
     action: () => {
@@ -128,9 +142,9 @@ test("asyncActionCreator() runs action provided as config property", t => {
   dispatchAction(() => ({}));
 });
 
-test("asyncActionCreator() runs server action when node detected", t => {
+test('asyncActionCreator() runs server action when node detected', t => {
   t.plan(1);
-  const createActionDispatcher = asyncActionCreator('FOOBAR', {
+  const createActionDispatcher = asyncActionCreator('FOOBAR', 'foo', 'bar', {
     server({foo, bar}) {
       t.pass('server action is run');
       return Promise.resolve();
@@ -144,10 +158,12 @@ test("asyncActionCreator() runs server action when node detected", t => {
   dispatchAction(() => ({}));
 });
 
-test("asyncActionCreator() runs client action when browser detected", t => {
-  const {asyncActionCreator: browserAsyncActionCreator} = proxyquire('../src', {'detect-node': false});
+test('asyncActionCreator() runs client action when browser detected', t => {
+  const {asyncActionCreator: browserAsyncActionCreator} = proxyquire('../src', {
+    'detect-node': false
+  });
   t.plan(1);
-  const createActionDispatcher = browserAsyncActionCreator('FOOBAR', {
+  const createActionDispatcher = browserAsyncActionCreator('FOOBAR', 'foo', 'bar', {
     server({foo, bar}) {
       t.fail('server action is run');
       return Promise.resolve();
@@ -161,7 +177,7 @@ test("asyncActionCreator() runs client action when browser detected", t => {
   dispatchAction(() => ({}));
 });
 
-test("asyncActionCreator() calls normalizr when schema is provided", t => {
+test('asyncActionCreator() calls normalizr when schema is provided', t => {
   t.plan(2);
   const mockResponse = {entities: 'foobar'};
   const mockSchema = {some: 'schema'};
@@ -175,7 +191,7 @@ test("asyncActionCreator() calls normalizr when schema is provided", t => {
   });
   const createActionDispatcher = schemaAsyncActionCreator('FOOBAR', {
     schema: mockSchema,
-    server(foo, bar) {
+    server() {
       return Promise.resolve(mockResponse);
     }
   });
@@ -195,7 +211,6 @@ test('asyncRoute() dispatches any extra params provided in config', t => {
     schema: {some: 'schema'},
     foo: 'baz',
     bar: 'qux'
-
   });
   let index = 0;
   const dispatchAction = createActionDispatcher();
@@ -206,18 +221,20 @@ test('asyncRoute() dispatches any extra params provided in config', t => {
   });
 });
 
-test("action passed to asyncActionCreator() is given all available parameters along with payload", t => {
-  t.plan(3);
+test('action passed to asyncActionCreator() is given all available parameters along with payload', t => {
+  t.plan(4);
   const payload = {foo: 'bar'};
+  const helpers = {helper: () => 'Hello, World!'};
   const dispatch = () => {};
   const thirdParam = 'foobar';
-  const createActionDispatcher = asyncActionCreator('FOOBAR', (param1, param2, param3) => {
-    t.equal(param1, payload, 'first param is the payload');
-    t.equal(param2, dispatch, 'second param is dispatch function');
+  const createActionDispatcher = asyncActionCreator('FOOBAR', 'foo', (param1, param2, param3) => {
+    t.deepEqual(param1, payload, 'first param is the payload');
+    t.equal(param2.helper, helpers.helper, 'second param contains the helpers');
+    t.equal(param2.dispatch, dispatch, 'second param contains dispatch function');
     t.equal(param3, thirdParam, 'third param is passed');
     return Promise.resolve();
   });
-  const dispatchAction = createActionDispatcher(payload);
+  const dispatchAction = createActionDispatcher(payload, helpers);
   dispatchAction(dispatch, thirdParam);
 });
 
@@ -239,37 +256,54 @@ test('asyncRoute() attaches any extra params provided in config to route', t => 
   t.end();
 });
 
-test("asyncRoute() thunk dispatches success action with response on completion of action", t => {
+test('asyncRoute() thunk dispatches success action with response on completion of action', t => {
   t.plan(2);
-  const {FOO: {thunk}} = asyncRoute('FOO', '/foo', () => Promise.resolve('Hello World!'));
-  thunk(action => {
-    t.equal(action.type, 'FOO_SUCCESS', `success action is dispatched`);
-    t.equal(action.response, 'Hello World!', `response is present`);
-  }, () => ({location: {}}));
+  const {
+    FOO: {thunk}
+  } = asyncRoute('FOO', '/foo', () => Promise.resolve('Hello World!'));
+  thunk(
+    action => {
+      t.equal(action.type, 'FOO_SUCCESS', `success action is dispatched`);
+      t.equal(action.response, 'Hello World!', `response is present`);
+    },
+    () => ({location: {}})
+  );
 });
 
-test("asyncRoute() thunk dispatches fail action with error details on action error", t => {
+test('asyncRoute() thunk dispatches fail action with error details on action error', t => {
   t.plan(3);
-  const {FOO: {thunk}} = asyncRoute('FOO', '/foo', () => Promise.reject({message: 'error message', code: 500}));
-  thunk(action => {
-    t.equal(action.type, 'FOO_FAIL', `error action is dispatched`);
-    t.equal(action.error.message, 'error message', `error message is present`);
-    t.equal(action.error.code, 500, `error code is present`);
-  }, () => ({location: {}}));
+  const {
+    FOO: {thunk}
+  } = asyncRoute('FOO', '/foo', () => Promise.reject({message: 'error message', code: 500}));
+  thunk(
+    action => {
+      t.equal(action.type, 'FOO_FAIL', `error action is dispatched`);
+      t.equal(action.error.message, 'error message', `error message is present`);
+      t.equal(action.error.code, 500, `error code is present`);
+    },
+    () => ({location: {}})
+  );
 });
 
-test("asyncRoute() thunk action is given all available parameters along with payload", t => {
+test('asyncRoute() thunk action is given all available parameters along with payload', t => {
   t.plan(4);
   const payload = {foo: 'bar'};
   const dispatch = () => {};
   const getState = () => ({location: {payload}});
   const helpers = {bar: 'baz'};
-  const {FOO: {thunk}} = asyncRoute('FOO', '/foo', (param1, param2, param3, param4) => {
-    t.equal(param1, payload, 'first param is the payload');
-    t.equal(param2, dispatch, 'second param is dispatch function');
-    t.equal(param3, getState, 'third param is getState function');
-    t.equal(param4, helpers, 'fourth param is helpers');
-    return Promise.resolve();
-  }, helpers);
+  const {
+    FOO: {thunk}
+  } = asyncRoute(
+    'FOO',
+    '/foo',
+    (param1, param2, param3) => {
+      t.equal(param1, payload, 'first param is the payload');
+      t.equal(param2.bar, helpers.bar, 'second param contains helpers');
+      t.equal(param2.dispatch, dispatch, 'second param contains dispatch function');
+      t.equal(param3, getState, 'third param is getState function');
+      return Promise.resolve();
+    },
+    helpers
+  );
   thunk(dispatch, getState);
 });

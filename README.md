@@ -62,7 +62,7 @@ const types = createTypes([
 
 ### Synchronous Action Creators
 
-Synchronous action creators can be defined using the `actionCreator(type [, paramName1, paramName2, ..., paramNameX])` helper.
+Synchronous action creators can be defined using the `actionCreator(type [, propName1, propName2, ..., propNameX])` helper.
 This will return a function that accepts the list of params as arguments and returns an action with the given type and arguments payload.
 
 **Before:**
@@ -71,7 +71,7 @@ var actions = {
   createCar: function() {
     return {type: 'CAR_CREATE_CAR'};
   },
-  editCar: function(car) {
+  editCar: function({car}) {
     return {type: 'CAR_EDIT_CAR', payload: {
       car: car
     }};
@@ -91,18 +91,16 @@ const actions = {
 
 ### Asynchronous Action Creators
 
-Asynchronous action creators can be defined using the `asyncActionCreator(type, action|config)` helper.
-If a function is passed as the second parameter, it will be treated as the asynchronous action that must return a promise,
-otherwise it can be a configuration object that accepts the following values:
+Asynchronous action creators can be defined using the `asyncActionCreator(type [, propName1, propName2, ..., propNameX], action|config)` helper.
+If a function is passed as the last parameter, it will be treated as the asynchronous action that must return a promise, otherwise it can be a configuration object that accepts the following values:
 
 - `action`: an asynchronous, promise-returning action
 - `schema`: a normalizr schema which will parse the response before returning
 - **Note: see [Universal](#universal) usage below for more configuration options**
 
-The action given to `asyncActionCreator` will eventually be called with the payload, the `dispatch` function, and whatever
+The action given to `asyncActionCreator` will eventually be called with the payload, any `helpers` (see [Helpers](#helpers) below) passed in, including the `dispatch` function, and whatever
 extra arguments as determined by the async middleware and the configuration of it. For example, if used with
-[redux-thunk](https://github.com/gaearon/redux-thunk), the action will be called with the payload, the `dispatch` function,
-the `getState` function, and the `extraArgument` if the middleware was created via the `withExtraArgument` function.
+[redux-thunk](https://github.com/gaearon/redux-thunk), the action will be called with the payload, the helpers, the `getState` function, and the `extraArgument` if the middleware was created via the `withExtraArgument` function.
 
 **Note: All other properties provided in `config` apart from `action`, `client`, `server`, and `schema` will be appended
 to all actions dispatched from the action creator enabling further customisation if needed.**
@@ -121,7 +119,7 @@ var actions = {
       });
     };
   },
-  addCar: function(electric, wheels) {
+  addCar: function({electric, wheels}) {
     return function(dispatch) {
       var payload = {electric: electric, wheels: wheels};
       dispatch({type: 'CAR_ADD_CAR', payload: payload});
@@ -147,12 +145,16 @@ import {asyncActionCreator} from 'redux-action-creator';
 
 const actions = {
   loadCars: asyncActionCreator(types.LOAD_CARS, () => get('/cars')),
-  addCar: asyncActionCreator(types.ADD_CAR, {
-    action: ({electric, wheels}) => post('/cars', {electrics, wheels}),
+  addCar: asyncActionCreator(types.ADD_CAR, 'electric', 'wheels', {
+    action: payload => post('/cars', payload),
     schema: new Schema('cars')
   })
 };
 ```
+
+### Helpers
+
+The `action` returned by `asyncActionCreator` accepts a payload object and also a `helpers` object.  This allows you to pass in any further functions required by the asynchronous action.  For example, if using a library to help with forms such as [reformist](https://github.com/andy-shea/reformist), quite often you'll require some form state to be modified depending on the state of the asynchronous action.  Libraries such as `reformist` provide functions to handle this such as `setSubmitting` and `setErrors`.  These functions can be passed through as helpers to the asynchronous action to be used when the asynchronous task fails or succeeds. The `dispatch` function will also be included in the `helpers` object.
 
 ### Universal
 
