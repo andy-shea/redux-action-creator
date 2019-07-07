@@ -1,11 +1,17 @@
 {
-  "presets": ["es2015"],
+  "presets": [
+    [
+      '@babel/env',
+      {
+        targets: {
+          node: 8
+        }
+      },
+    ]
+  ],
   "env": {
     "test": {
       "plugins": ["istanbul"]
     }
-  },
-  "plugins": [
-    "transform-object-rest-spread"
-  ]
+  }
 }
